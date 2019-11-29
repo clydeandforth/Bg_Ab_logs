@@ -1,0 +1,792 @@
+---
+title: "Figure 2"
+author: "JAMES D"
+date: "03/02/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(KEGGREST)
+library(DESeq2)
+library(ggplot2)
+library(apeglm)
+library(gridExtra)
+library(vsn)
+library(lattice)
+library(gage)
+library(clusterProfiler)
+```
+
+```{r}
+
+########################
+#Healthy V Bg+only
+#
+#######################
+
+deseqFile1 <- "Healthy_vBgonly_deseq2.txt"
+countData1 <- read.table(deseqFile1, header = T)
+head(countData1)
+
+
+countData1[countData1 == 0] <- 1
+
+names(countData1)<- c("Healthy Rep1","Healthy Rep2","Healthy Rep3", "Healthy Rep4","Healthy Rep5","Healthy Rep6", "Bg 1", "Bg 2", "Bg 3")
+
+# Create table with treatment information
+sampleNames1 <- colnames(countData1)
+sampleCondition1 <- c("Healthy","Healthy","Healthy","Healthy", "Healthy","Healthy", "Bg", "Bg", "Bg")
+colData1<- data.frame(condition = sampleCondition1)
+row.names(colData1) = sampleNames1
+treatments = c("Healthy","Bg")
+
+#the below command should be TRUE
+all(rownames(colData1) == colnames(countData1))
+
+dds1 <- DESeqDataSetFromMatrix(countData = countData1,
+                                        colData = colData1,
+                                        design = ~ condition)
+dds1
+keep1 <- rowSums(counts(dds1)) >= 20
+dds1 <- dds1[keep1,]
+
+dds1 <- DESeq(dds1)
+res1 <- results(dds1)
+res1
+
+res1 <- results(dds1, name="condition_Healthy_vs_Bg")
+res1 <- results(dds1, contrast=c("condition","Healthy","Bg"))
+
+resultsNames(dds1)
+resLFC_1 <- lfcShrink(dds1, coef="condition_Healthy_vs_Bg", type="apeglm")
+head(resLFC_1)
+resOrdered_1 <- resLFC_1[order(resLFC_1$pvalue),]
+summary(resLFC_1)
+
+sum(resLFC_1$padj < 0.1, na.rm=TRUE)
+sum(resLFC_1$padj < 0.05, na.rm=TRUE)
+
+vsd1 <- vst(dds1, blind=FALSE)
+
+```
+
+```{r}
+
+a1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_01484", intgroup="condition", 
+                returnData=TRUE)
+a1$Treatment<-rep("Bg only", nrow(a1), append=T)
+a1$annotations<-rep("fhaB", nrow(a1), append=T)
+
+
+b1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_00761", intgroup="condition", 
+                returnData=TRUE)
+b1$Treatment<-rep("Bg only", nrow(b1), append=T)
+b1$annotations<-rep("chvB", nrow(b1), append=T)
+
+c1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_03741", intgroup="condition", 
+                 returnData=TRUE)
+c1$Treatment<-rep("Bg only", nrow(c1), append=T)
+c1$annotations<-rep("Glutathione\nreductase", nrow(c1), append=T)
+
+d1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_04333", intgroup="condition", 
+                 returnData=TRUE)
+d1$Treatment<-rep("Bg only", nrow(d1), append=T)
+d1$annotations<-rep("Glutathione\nefflux", nrow(d1), append=T)
+
+e1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_03740", intgroup="condition", 
+                 returnData=TRUE)
+e1$Treatment<-rep("Bg only", nrow(e1), append=T)
+e1$annotations<-rep("katG", nrow(e1), append=T)
+
+f1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_02742", intgroup="condition", 
+                 returnData=TRUE)
+f1$Treatment<-rep("Bg only", nrow(f1), append=T)
+f1$annotations<-rep("AvrE", nrow(f1), append=T)
+
+g1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_01560", intgroup="condition", 
+                 returnData=TRUE)
+g1$Treatment<-rep("Bg only", nrow(g1), append=T)
+g1$annotations<-rep("HopPtoL", nrow(g1), append=T)
+
+h1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_01561", intgroup="condition", 
+                 returnData=TRUE)
+h1$Treatment<-rep("Bg only", nrow(h1), append=T)
+h1$annotations<-rep("SrfB", nrow(h1), append=T)
+
+i1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_03350", intgroup="condition", 
+                 returnData=TRUE)
+i1$Treatment<-rep("Bg only", nrow(i1), append=T)
+i1$annotations<-rep("fhaB 2", nrow(i1), append=T)
+
+
+j1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_00810", intgroup="condition", 
+                 returnData=TRUE)
+j1$Treatment<-rep("Bg only", nrow(j1), append=T)
+j1$annotations<-rep("vgrG 1", nrow(j1), append=T)
+
+k1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_00556", intgroup="condition", 
+                 returnData=TRUE)
+k1$Treatment<-rep("Bg only", nrow(k1), append=T)
+k1$annotations<-rep("vgrG 2", nrow(k1), append=T)
+
+l1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_00835", intgroup="condition", 
+                 returnData=TRUE)
+l1$Treatment<-rep("Bg only", nrow(l1), append=T)
+l1$annotations<-rep("vgrG 3", nrow(l1), append=T)
+
+m1 <- plotCounts(dds1, gene="kraken:taxid|9999999|BG_02103", intgroup="condition", 
+                 returnData=TRUE)
+m1$Treatment<-rep("Bg only", nrow(m1), append=T)
+m1$annotations<-rep("vgrG 4", nrow(m1), append=T)
+```
+
+```{r}
+
+(BgonlyPCA<-plotPCA(vsd1, intgroup=c("condition"))+
+geom_point(aes (color=condition),size =5)+
+        coord_cartesian(ylim = c(-30, 12), xlim = c(-20, 40))+
+    scale_color_manual(values = c("#fc9272", "#a1d99b"),name = 'Sample')+
+  theme(legend.direction = 'vertical', 
+        axis.text.x = element_text(colour="grey20",size=10,angle=90,hjust=.5,vjust=.5,face="bold"),
+        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=1,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+        axis.title.y = element_text(colour="grey20",size=10,angle=90,hjust=.5,vjust=.5,face="bold"),
+        strip.text.x = element_text(size = 13),
+  legend.position = "none"))
+          
+          # Remove legend = none and uncomment the following lines for legend
+           #         legend.background = element_rect(fill="gray90", size=.6, linetype="dotted"),
+         # legend.title = element_text(colour="Black", size=16, face="bold"),
+        #  legend.text = element_text(colour = "Black", size = 12, face = "plain"),
+         # legend.position = 'right'))
+
+svg("BgonlyPCA_03022019.svg", width = 14, height = 7)
+plot (BgonlyPCA)# Make plot
+dev.off() 
+```
+
+```{r}
+
+########################
+#Healthy V Bg+eggs
+#
+#######################
+deseqFile2 <- "Healthy_vBgeggs_deseq2.txt"
+countData2 <- read.table(deseqFile2, header = T)
+
+countData2[countData2 == 0] <- 1
+
+names(countData2)<- c("Healthy Rep1","Healthy Rep2","Healthy Rep3", "Healthy Rep4","Healthy Rep5","Healthy Rep6", "Bg 1", "Bg 2", "Bg 3")
+
+# Create table with treatment information
+sampleNames2 <- colnames(countData2)
+sampleCondition2 <- c("Healthy","Healthy","Healthy","Healthy", "Healthy","Healthy", "Bg", "Bg", "Bg")
+colData2<- data.frame(condition = sampleCondition2)
+row.names(colData2) = sampleNames2
+treatments = c("Healthy","Bg")
+
+#the below command should be TRUE
+all(rownames(colData2) == colnames(countData2))
+
+dds2 <- DESeqDataSetFromMatrix(countData = countData2,
+                              colData = colData2,
+                              design = ~ condition)
+dds2
+keep2 <- rowSums(counts(dds2)) >= 20
+dds2 <- dds2[keep2,]
+
+dds2 <- DESeq(dds2)
+res2 <- results(dds2)
+
+res2 <- results(dds2, name="condition_Healthy_vs_Bg")
+res2 <- results(dds2, contrast=c("condition","Healthy","Bg"))
+
+resultsNames(dds2)
+
+resLFC_2 <- lfcShrink(dds2, coef="condition_Healthy_vs_Bg", type="apeglm")
+
+resOrdered2 <- res2[order(res2$pvalue),]
+summary(res2)
+
+sum(resLFC_2$padj < 0.1, na.rm=TRUE)
+sum(resLFC_2$padj < 0.05, na.rm=TRUE)
+
+```
+
+```{r}
+a2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_01484", intgroup="condition", 
+                returnData=TRUE)
+a2$Treatment<-rep("Bg + eggs", nrow(a2), append=T)
+a2$annotations<-rep("fhaB", nrow(a2), append=T)
+
+
+b2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_00761", intgroup="condition", 
+                returnData=TRUE)
+b2$Treatment<-rep("Bg + eggs", nrow(b2), append=T)
+b2$annotations<-rep("chvB", nrow(b2), append=T)
+
+c2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_03741", intgroup="condition", 
+                returnData=TRUE)
+c2$Treatment<-rep("Bg + eggs", nrow(c2), append=T)
+c2$annotations<-rep("Glutathione\nreductase", nrow(c2), append=T)
+
+d2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_04333", intgroup="condition", 
+                 returnData=TRUE)
+d2$Treatment<-rep("Bg + eggs", nrow(d2), append=T)
+d2$annotations<-rep("Glutathione\nefflux", nrow(d2), append=T)
+
+e2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_03740", intgroup="condition", 
+                 returnData=TRUE)
+e2$Treatment<-rep("Bg + eggs", nrow(e2), append=T)
+e2$annotations<-rep("katG", nrow(e2), append=T)
+
+f2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_02742", intgroup="condition", 
+                 returnData=TRUE)
+f2$Treatment<-rep("Bg + eggs", nrow(f2), append=T)
+f2$annotations<-rep("AvrE", nrow(f2), append=T)
+
+g2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_01560", intgroup="condition", 
+                 returnData=TRUE)
+g2$Treatment<-rep("Bg + eggs", nrow(g2), append=T)
+g2$annotations<-rep("HopPtoL", nrow(g2), append=T)
+
+h2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_01561", intgroup="condition", 
+                 returnData=TRUE)
+h2$Treatment<-rep("Bg + eggs", nrow(h2), append=T)
+h2$annotations<-rep("SrfB", nrow(h2), append=T)
+
+i2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_03350", intgroup="condition", 
+                 returnData=TRUE)
+i2$Treatment<-rep("Bg + eggs", nrow(i2), append=T)
+i2$annotations<-rep("fhaB 2", nrow(i2), append=T)
+
+j2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_00810", intgroup="condition", 
+                 returnData=TRUE)
+j2$Treatment<-rep("Bg + eggs", nrow(j2), append=T)
+j2$annotations<-rep("vgrG 1", nrow(j2), append=T)
+
+k2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_00556", intgroup="condition", 
+                 returnData=TRUE)
+k2$Treatment<-rep("Bg + eggs", nrow(k2), append=T)
+k2$annotations<-rep("vgrG 2", nrow(k2), append=T)
+
+l2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_00835", intgroup="condition", 
+                 returnData=TRUE)
+l2$Treatment<-rep("Bg + eggs", nrow(l2), append=T)
+l2$annotations<-rep("vgrG 3", nrow(l2), append=T)
+
+m2 <- plotCounts(dds2, gene="kraken:taxid|9999999|BG_02103", intgroup="condition", 
+                 returnData=TRUE)
+m2$Treatment<-rep("Bg + eggs", nrow(m2), append=T)
+m2$annotations<-rep("vgrG 4", nrow(m2), append=T)
+
+```
+
+```{r}
+Anti_host_genes<-rbind(c1,c2,d1,d2,e1,e2)
+biofilm_genes<-rbind(a1,a2, b1, b2, i1, i2)
+pathogen_genes<-rbind(f1,f2,g1,g2,h1,h2, j1, j2, k1, k2, l1, l2, m1, m2)
+```
+
+```{r}
+(p2<-ggplot(Anti_host_genes, aes(x=condition, y=count, fill = condition)) + 
+    geom_boxplot()+
+    scale_y_log10()+
+    ylab("Normalised read count (log10)") +
+    facet_grid(Treatment ~ annotations)+
+    coord_cartesian(ylim = c(1, 200))+
+    #annotate("text", x=1.5,  y=120, label =  "paste(italic(Padj), \" =\")", parse = TRUE)+
+    scale_fill_manual(values = c("#fc9272","#a1d99b"))+
+    theme_bw() +
+    theme(panel.grid.minor = element_blank())+
+    theme(panel.grid.major = element_blank())+
+    theme(axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.x=element_blank(),
+          axis.text.y = element_text(colour="grey20",size=6,angle=0,hjust=1,vjust=0,face="plain"),  
+          axis.title.y = element_text(colour="grey20",size=8,angle=90,hjust=.5,vjust=.5,face="plain"),
+          strip.text.x = element_text(size=10, face = "bold", angle=0),
+          strip.text.y = element_text(size=8, face="bold"),
+          legend.position = "none",
+          strip.background = element_rect(colour="black", fill="#fff7bc")))
+
+(p3<-ggplot(biofilm_genes, aes(x=condition, y=count, fill = condition)) + 
+    geom_boxplot()+
+    scale_y_log10()+
+    ylab("") +
+    facet_grid(Treatment ~ annotations)+
+    coord_cartesian(ylim = c(1, 200))+
+    #annotate("text", x=1.5,  y=120, label =  "paste(italic(Padj), \" =\")", parse = TRUE)+
+    scale_fill_manual(values = c("#fc9272","#a1d99b"))+
+    theme_bw() +
+    theme(panel.grid.minor = element_blank())+
+    theme(panel.grid.major = element_blank())+
+    theme(axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.text.y = element_text(colour="grey20",size=6,angle=0,hjust=1,vjust=0,face="plain"),  
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(colour="grey20",size=8,angle=90,hjust=.5,vjust=.5,face="plain"),
+          strip.text.x = element_text(size=10, face = "bold", angle=0),
+          strip.text.y = element_text(size=8, face="bold"),
+          legend.position = "none",
+          strip.background = element_rect(colour="black", fill="#ece2f0")))
+
+(p4<-ggplot(pathogen_genes, aes(x=condition, y=count, fill = condition)) + 
+    geom_boxplot()+
+    scale_fill_manual(values = c("#fc9272","#a1d99b"))+
+    scale_y_log10()+
+    ylab("") +
+    facet_grid(Treatment ~ annotations)+
+    coord_cartesian(ylim = c(1, 200))+
+    #annotate("text", x=1.5,  y=120, label =  "paste(italic(Padj), \" =\")", parse = TRUE)+
+    theme_bw() +
+    theme(panel.grid.minor = element_blank())+
+    theme(panel.grid.major = element_blank())+
+    theme(axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.text.y = element_text(colour="grey20",size=6,angle=0,hjust=1,vjust=0,face="plain"),  
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(colour="grey20",size=8,angle=90,hjust=.5,vjust=.5,face="plain"),
+          legend.position = "none",
+          strip.text.x = element_text(size=10, face = "bold", angle=0),
+          strip.text.y = element_text(size=8, face="bold"),
+          strip.background = element_rect(colour="black", fill="#a6bddb")))
+
+```
+
+```{r}
+vsd2 <- vst(dds2, blind=FALSE)
+#meanSdPlot(assay(vsd2))
+BgeggsPCA<-plotPCA(vsd2, intgroup=c("condition"), returnData=TRUE)
+
+percentVar_egg <- round(100 * attr(BgeggsPCA, "percentVar"))
+
+eggPCA<-(ggplot(BgeggsPCA, aes(PC1, PC2, color=condition)) +
+   geom_point(size = 5)+
+    xlab(paste0("PC1: ",percentVar_egg[1],"% variance")) +
+    ylab(paste0("PC2: ",percentVar_egg[2],"% variance")) + 
+    #coord_fixed()+
+    coord_cartesian(ylim = c(-30, 12), xlim = c(-20, 40))+
+    scale_color_manual(values = c("#fc9272", "#a1d99b"),labels = c("Bg" = "Bg+eggs") ,name = 'Sample')+
+    theme(legend.direction = 'vertical', 
+          axis.text.x = element_text(colour="grey20",size=10,angle=90,hjust=.5,vjust=.5,face="plain"),
+          axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=1,vjust=0,face="plain"),  
+          axis.title.x = element_text(colour="grey20",size=10,angle=0,hjust=.5,vjust=0,face="plain"),
+          axis.title.y = element_text(colour="grey20",size=10,angle=90,hjust=.5,vjust=.5,face="plain"),
+          strip.text.x = element_text(size = 13),
+          legend.position = "none"))
+          
+          # Remove legend = none and uncomment the following lines for legend
+           #         legend.background = element_rect(fill="gray90", size=.6, linetype="dotted"),
+         # legend.title = element_text(colour="Black", size=16, face="bold"),
+        #  legend.text = element_text(colour = "Black", size = 12, face = "plain"),
+         # legend.position = 'right'))
+
+
+svg("BgeggsPCA_03022019.svg", width = 7, height = 6)
+plot (eggPCA)# Make plot
+dev.off() 
+```
+
+```{r}
+vsd1 <- vst(dds1, blind=FALSE)
+#meanSdPlot(assay(vsd1))
+#sampleDists <- dist(t(assay(vsd)))
+BgonlyPCA<-plotPCA(vsd1, intgroup=c("condition"), returnData=TRUE)
+percentVar_only <- round(100 * attr(BgonlyPCA, "percentVar"))
+BgPCA<-(ggplot(BgonlyPCA, aes(PC1, PC2, color=condition)) +
+    geom_point(size =5)+
+    xlab(paste0("PC1: ",percentVar_only[1],"% variance")) +
+    ylab(paste0("PC2: ",percentVar_only[2],"% variance")) + 
+    #coord_fixed()+
+    coord_cartesian(ylim = c(-30, 12), xlim = c(-20, 30))+
+    scale_color_manual(values = c("#fc9272", "#a1d99b"), name = 'Sample')+
+      theme(legend.direction = 'vertical', 
+          axis.text.x = element_text(colour="grey20",size=10,angle=90,hjust=.5,vjust=.5,face="plain"),
+          axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=1,vjust=0,face="plain"),  
+          axis.title.x = element_text(colour="grey20",size=10,angle=0,hjust=.5,vjust=0,face="plain"),
+          axis.title.y = element_text(colour="grey20",size=10,angle=90,hjust=.5,vjust=.5,face="plain"),
+          strip.text.x = element_text(size = 13),
+          legend.position = "none"))
+        
+```
+
+```{r}
+kg.eco=kegg.gsets("eco")
+kg.eco.eg=kegg.gsets("eco", id.type = "uniprot")
+
+kg.raq=kegg.gsets("raq")
+kg.raq.eg=kegg.gsets("raq", id.type = "uniprot")
+
+kg.ecs=kegg.gsets("ecs")
+kg.ecs.eg=kegg.gsets("ecs", id.type = "uniprot")
+
+kg.pct=kegg.gsets("pct")
+kg.pct.eg=kegg.gsets("pct", id.type = "uniprot")
+
+kg.pda=kegg.gsets("pda")
+kg.pda.eg=kegg.gsets("pda", id.type = "uniprot")
+
+kg.sef=kegg.gsets("sef")
+kg.sef.eg=kegg.gsets("sef", id.type = "uniprot")
+
+kg.ddd=kegg.gsets("ddd")
+kg.ddd.eg=kegg.gsets("ddd", id.type = "uniprot")
+
+kg.pop=kegg.gsets("pop")
+kg.pop.eg=kegg.gsets("pop", id.type = "uniprot")
+
+kg.ath=kegg.gsets("ath")
+kg.ath.eg=kegg.gsets("ath", id.type = "uniprot")
+
+combined_kg_eg_sets=c(kg.ecs.eg$kg.sets, kg.ecs.eg$sigmet.idx, kg.ecs.eg$sig.idx, kg.ecs.eg$met.idx, kg.ecs.eg$dise.idx, kg.eco.eg$kg.sets, kg.eco.eg$sigmet.idx, kg.eco.eg$sig.idx, kg.eco.eg$met.idx, kg.eco.eg$dise.idx, kg.pct.eg$kg.sets, kg.pct.eg$sigmet.idx, kg.pct.eg$sig.idx, kg.pct.eg$met.idx, kg.pct.eg$dise.idx, kg.ddd.eg$kg.sets, kg.ddd.eg$sigmet.idx, kg.ddd.eg$sig.idx, kg.ddd.eg$met.idx, kg.ddd.eg$dise.idx, kg.ath.eg$kg.sets, kg.ath.eg$sigmet.idx, kg.ath.eg$sig.idx, kg.ath.eg$met.idx, kg.ath.eg$dise.idx, kg.pop.eg$kg.sets, kg.pop.eg$sigmet.idx, kg.pop.eg$sig.idx, kg.pop.eg$met.idx, kg.pop.eg$dise.idx, kg.sef.eg$kg.sets, kg.sef.eg$sigmet.idx, kg.sef.eg$sig.idx, kg.sef.eg$met.idx, kg.sef.eg$dise.idx, kg.pda.eg$kg.sets, kg.pda.eg$sigmet.idx, kg.pda.eg$sig.idx, kg.pda.eg$met.idx, kg.pda.eg$dise.idx, kg.raq.eg$kg.sets, kg.raq.eg$sigmet.idx, kg.raq.eg$sig.idx, kg.raq.eg$met.idx, kg.raq.eg$dise.idx)
+```
+
+```{r}
+search_kegg_organism('Gibbsiella', by='scientific_name')
+search_kegg_organism('pct', by='kegg_code')
+
+cuff.res<-read.table("base_annotations.csv", header = T, sep=",")
+
+eg2np_pct<-bitr_kegg(cuff.res$Uniprot, fromType = 'uniprot', toType = 'kegg', organism = 'pct')
+eg2np_dd<-bitr_kegg(cuff.res$Uniprot, fromType = 'uniprot', toType = 'kegg', organism = 'ddd')
+eg2np_eco<-bitr_kegg(cuff.res$Uniprot, fromType = 'uniprot', toType = 'kegg', organism = 'eco')
+eg2np_ecs<-bitr_kegg(cuff.res$Uniprot, fromType = 'uniprot', toType = 'kegg', organism = 'ecs')
+eg2np_pda<-bitr_kegg(cuff.res$Uniprot, fromType = 'uniprot', toType = 'kegg', organism = 'pda')
+
+eg2np_raq<-bitr_kegg(cuff.res$Uniprot, fromType = 'uniprot', toType = 'kegg', organism = 'raq')
+eg2np_spe<-bitr_kegg(cuff.res$Uniprot, fromType = 'uniprot', toType = 'kegg', organism = 'spe')
+eg2np_ath<-bitr_kegg(cuff.res$Uniprot, fromType = 'uniprot', toType = 'kegg', organism = 'ath')
+eg2np_pop<-bitr_kegg(cuff.res$Uniprot, fromType = 'uniprot', toType = 'kegg', organism = 'pop')
+
+combined_eg2np<-rbind(eg2np_pct, eg2np_dd, eg2np_eco, eg2np_raq, eg2np_spe, eg2np_ath, eg2np_pop, eg2np_ecs, eg2np_pda, eg2np_raq)
+
+```
+
+```{r}
+combined_eg2np$ID<-cuff.res$ID[match(combined_eg2np$uniprot, cuff.res$Uniprot)]
+### Read in log fold change from deseq2
+df2 <- read.csv("healthy_Bgonly_results_for_gage.csv", sep=",", header = T, stringsAsFactors = FALSE) #%>% slice(-2)
+df3 <- read.csv("healthy_Bgeggs_results_for_gage.csv", sep=",", header = T, stringsAsFactors = FALSE) #%>% slice(-2)
+
+combined_eg2np$Bgonly<-df2$log2FoldChange[match(combined_eg2np$ID, df2$X)]
+combined_eg2np$Bgeggs<-df3$log2FoldChange[match(combined_eg2np$ID, df3$X)]
+
+#cuff.res5$kegg<-combined_eg2np$kegg[match(cuff.res5$Uniprot, combined_eg2np$uniprot)]
+
+new_file1<-as.matrix(combined_eg2np)
+rownames(new_file1) <- combined_eg2np$kegg
+
+new_file2<-as.data.frame(new_file1)
+new_file3<-new_file2[, c(4,5)]
+
+write.csv(new_file3, "change_to_numberic.csv")
+
+new_file5 <- read.csv("change_to_numberic.csv", row.names=1, sep=",", header = T, stringsAsFactors = FALSE) 
+new_file6<-as.matrix(new_file5)
+
+ref.idx=1
+samp.idx=2
+ms=apply(new_file6, 1, mean) 
+exprs2=new_file6-ms
+```
+
+```{r}
+#### Enriched Bg only and Bg eggs compared to healthy
+keggresA = gage(exprs2, gsets=combined_kg_eg_sets,ref = NULL,  samp = NULL, same.dir   = F, compare = 'as.group', set.size=c(10, 100))
+lapply(keggresA, head)
+#write.csv(keggres, "keggress_Bg_axenic_v_coculture_6hres.csv")
+keggresA2<-as.data.frame(keggresA)
+head(keggresA2)
+keggresA2$names <- rownames(keggresA2)
+keggresA3<-transform(keggresA2, KeggID = substr(names, 1,8), Annotations = substr(names, 1,40))
+
+keggresA4<-na.omit(keggresA3)
+Kdf4<-subset(keggresA4, greater.p.val < 0.05) 
+
+#######
+
+
+##
+#### Enriched Bg eggs compared to Bg only
+keggres1 = gage(new_file6, gsets=combined_kg_eg_sets,ref = ref.idx,  samp = samp.idx, same.dir   = F, compare = 'paired', set.size=c(10, 100))
+lapply(keggres1, head)
+keggres2<-as.data.frame(keggres1)
+head(keggres2)
+keggres2$names <- rownames(keggres2)
+keggres3<-transform(keggres2, KeggID = substr(names, 1,8), Annotations = substr(names, 1,40))
+keggres4<-na.omit(keggres3)
+Kdf5<-subset(keggres4, greater.p.val < 0.05) 
+#######
+```
+
+```{r}
+(q1 <- ggplot(Kdf4, aes(greater.stat.mean, Annotations))+
+    geom_point(aes(colour=greater.q.val, size=greater.set.size)) +
+    scale_size(name = "Number of genes")+
+    ggtitle("Bg only and Bg eggs compared to healthy") +
+    scale_color_gradientn(colours=rainbow(4), limits=c(0, 1), name = "q-value") +
+    #geom_vline(xintercept=0, size=0.5, colour="gray50") +
+    xlab("Magnitude of gene-set level changes")+
+    labs(fill = "Number of genes")+
+    #facet_wrap(~ assay_name, ncol=2)+
+    theme(panel.background=element_rect(fill="NA", colour="black", size = 2, linetype='solid'),
+          panel.grid.major=element_line(size=0.05,linetype='solid', colour="gray90"), 
+          panel.grid.minor=element_line(size=0.05,linetype='solid', colour="gray90"),
+          axis.text.y = element_text(size = 6),
+          legend.position = "none"))
+          
+# Add section below to return legend
+          #strip.text.x = element_text(size = 7),
+          #axis.title.y=element_blank()) +
+    #expand_limits(x=c(0, 5)) +
+    #scale_x_continuous(breaks=c(0,1,2,3,4,5)))
+
+(q2 <- ggplot(Kdf5, aes(greater.stat.mean, Annotations))+
+    geom_point(aes(colour=greater.q.val, size=greater.set.size)) +
+    scale_size(name = "Number of genes")+
+    ggtitle("Bg eggs compared to Bg only") +
+    scale_color_gradientn(colours=rainbow(4), limits=c(0, 1), name = "q-value") +
+    #geom_vline(xintercept=0, size=0.5, colour="gray50") +
+    xlab("Magnitude of gene-set level changes")+
+    ylab("")+
+
+    labs(fill = "Number of genes")+
+    #facet_wrap(~ assay_name, ncol=2)+
+    theme(panel.background=element_rect(fill="NA", colour="black", size = 2, linetype='solid'),
+          panel.grid.major=element_line(size=0.05,linetype='solid', colour="gray90"), 
+          panel.grid.minor=element_line(size=0.05,linetype='solid', colour="gray90"),
+          axis.text.y = element_text(size = 6),
+          legend.position = "none"))
+
+          
+png("Enrichment_genes_in_Bgonly_and_Bgeggs_v_healthy.png", res = 300, width = 2500, height = 1600)
+plot (q1)# Make plot
+dev.off() 
+
+#svg("Enrichment_genes_in_Bgonly_and_Bgeggs_v_healthy.svg", width = 6, height = 7)
+#plot (q1)# Make plot
+#dev.off() 
+
+
+png("Enrichment_genes_in_Bgeggs_v_Bgonly.png", res = 300, width = 2500, height = 1600)
+plot (q2)# Make plot
+dev.off() 
+
+```
+
+
+```{r}
+lay <-rbind(c(3,4,NA),
+            c(3,4,NA),
+             c(3,4,NA),
+            c(1,5,6),
+            c(1,5,6),
+            c(2,7,7),
+            c(2,7,7))
+
+JD_grob<-grid.arrange(grobs=list(eggPCA, BgonlyPCA,q1,q2, p2, p3,p4), layout_matrix = lay)
+
+#png("multi_grob_29072018.png", width = 14, height = 7, units = 'in', res = 300)
+svg("multi_grob_03022019.svg", width = 14, height = 7)
+plot (JD_grob)# Make plot
+dev.off() 
+
+
+```
+
+```{r}
+
+########################
+#Healthy V Gq only
+#
+#######################
+deseqFile2 <- "Healthy_vGqonly_deseq2.txt"
+countData2 <- read.table(deseqFile2, header = T)
+
+countData2[countData2 == 0] <- 1
+
+names(countData2)<- c("Healthy Rep1","Healthy Rep2","Healthy Rep3", "Healthy Rep4","Healthy Rep5","Healthy Rep6", "Gq 1", "Gq 2", "Gq 3")
+
+# Create table with treatment information
+sampleNames2 <- colnames(countData2)
+sampleCondition2 <- c("Healthy","Healthy","Healthy","Healthy", "Healthy","Healthy", "Gq", "Gq", "Gq")
+colData2<- data.frame(condition = sampleCondition2)
+row.names(colData2) = sampleNames2
+treatments = c("Healthy","Gq")
+
+#the below command should be TRUE
+all(rownames(colData2) == colnames(countData2))
+
+dds2 <- DESeqDataSetFromMatrix(countData = countData2,
+                              colData = colData2,
+                              design = ~ condition)
+dds2
+keep2 <- rowSums(counts(dds2)) >= 20
+dds2 <- dds2[keep2,]
+
+dds2 <- DESeq(dds2)
+res2 <- results(dds2)
+
+res2 <- results(dds2, name="condition_Healthy_vs_Gq")
+res2 <- results(dds2, contrast=c("condition","Healthy","Gq"))
+
+resultsNames(dds2)
+
+resLFC_2 <- lfcShrink(dds2, coef="condition_Healthy_vs_Gq", type="apeglm")
+
+resOrdered2 <- res2[order(res2$pvalue),]
+summary(res2)
+
+sum(resLFC_2$padj < 0.1, na.rm=TRUE)
+sum(resLFC_2$padj < 0.05, na.rm=TRUE)
+
+```
+
+```{r}
+
+########################
+#Healthy V Gq + Ab eggs
+#
+#######################
+deseqFile2 <- "Healthy_vGqeggs_deseq2.txt"
+countData2 <- read.table(deseqFile2, header = T)
+
+countData2[countData2 == 0] <- 1
+
+names(countData2)<- c("Healthy Rep1","Healthy Rep2","Healthy Rep3", "Healthy Rep4","Healthy Rep5","Healthy Rep6", "Gq 1", "Gq 2", "Gq 3")
+
+# Create table with treatment information
+sampleNames2 <- colnames(countData2)
+sampleCondition2 <- c("Healthy","Healthy","Healthy","Healthy", "Healthy","Healthy", "Gq", "Gq", "Gq")
+colData2<- data.frame(condition = sampleCondition2)
+row.names(colData2) = sampleNames2
+treatments = c("Healthy","Gq")
+
+#the below command should be TRUE
+all(rownames(colData2) == colnames(countData2))
+
+dds2 <- DESeqDataSetFromMatrix(countData = countData2,
+                              colData = colData2,
+                              design = ~ condition)
+dds2
+keep2 <- rowSums(counts(dds2)) >= 20
+dds2 <- dds2[keep2,]
+
+dds2 <- DESeq(dds2)
+res2 <- results(dds2)
+
+res2 <- results(dds2, name="condition_Healthy_vs_Gq")
+res2 <- results(dds2, contrast=c("condition","Healthy","Gq"))
+
+resultsNames(dds2)
+
+resLFC_2 <- lfcShrink(dds2, coef="condition_Healthy_vs_Gq", type="apeglm")
+
+resOrdered2 <- res2[order(res2$pvalue),]
+summary(res2)
+
+sum(resLFC_2$padj < 0.1, na.rm=TRUE)
+sum(resLFC_2$padj < 0.05, na.rm=TRUE)
+
+```
+
+```{r}
+
+########################
+#Healthy V Lb only
+#
+#######################
+deseqFile2 <- "Healthy_vLbonly_deseq2.txt"
+countData2 <- read.table(deseqFile2, header = T)
+
+countData2[countData2 == 0] <- 1
+
+names(countData2)<- c("Healthy Rep1","Healthy Rep2","Healthy Rep3", "Healthy Rep4","Healthy Rep5","Healthy Rep6", "Gq 1", "Gq 2", "Gq 3")
+
+# Create table with treatment information
+sampleNames2 <- colnames(countData2)
+sampleCondition2 <- c("Healthy","Healthy","Healthy","Healthy", "Healthy","Healthy", "Gq", "Gq", "Gq")
+colData2<- data.frame(condition = sampleCondition2)
+row.names(colData2) = sampleNames2
+treatments = c("Healthy","Gq")
+
+#the below command should be TRUE
+all(rownames(colData2) == colnames(countData2))
+
+dds2 <- DESeqDataSetFromMatrix(countData = countData2,
+                              colData = colData2,
+                              design = ~ condition)
+dds2
+keep2 <- rowSums(counts(dds2)) >= 20
+dds2 <- dds2[keep2,]
+
+dds2 <- DESeq(dds2)
+res2 <- results(dds2)
+
+res2 <- results(dds2, name="condition_Healthy_vs_Gq")
+res2 <- results(dds2, contrast=c("condition","Healthy","Gq"))
+
+resultsNames(dds2)
+
+resLFC_2 <- lfcShrink(dds2, coef="condition_Healthy_vs_Gq", type="apeglm")
+
+resOrdered2 <- res2[order(res2$pvalue),]
+summary(res2)
+
+sum(resLFC_2$padj < 0.1, na.rm=TRUE)
+sum(resLFC_2$padj < 0.05, na.rm=TRUE)
+
+```
+
+```{r}
+
+########################
+#Healthy V Lb + Ab eggs
+#
+#######################
+deseqFile2 <- "Healthy_vLbeggs_deseq2.txt"
+countData2 <- read.table(deseqFile2, header = T)
+
+countData2[countData2 == 0] <- 1
+
+names(countData2)<- c("Healthy Rep1","Healthy Rep2","Healthy Rep3", "Healthy Rep4","Healthy Rep5","Healthy Rep6", "Gq 1", "Gq 2", "Gq 3")
+
+# Create table with treatment information
+sampleNames2 <- colnames(countData2)
+sampleCondition2 <- c("Healthy","Healthy","Healthy","Healthy", "Healthy","Healthy", "Gq", "Gq", "Gq")
+colData2<- data.frame(condition = sampleCondition2)
+row.names(colData2) = sampleNames2
+treatments = c("Healthy","Gq")
+
+#the below command should be TRUE
+all(rownames(colData2) == colnames(countData2))
+
+dds2 <- DESeqDataSetFromMatrix(countData = countData2,
+                              colData = colData2,
+                              design = ~ condition)
+dds2
+keep2 <- rowSums(counts(dds2)) >= 20
+dds2 <- dds2[keep2,]
+
+dds2 <- DESeq(dds2)
+res2 <- results(dds2)
+
+res2 <- results(dds2, name="condition_Healthy_vs_Gq")
+res2 <- results(dds2, contrast=c("condition","Healthy","Gq"))
+
+resultsNames(dds2)
+
+resLFC_2 <- lfcShrink(dds2, coef="condition_Healthy_vs_Gq", type="apeglm")
+
+resOrdered2 <- res2[order(res2$pvalue),]
+summary(res2)
+
+sum(resLFC_2$padj < 0.1, na.rm=TRUE)
+sum(resLFC_2$padj < 0.05, na.rm=TRUE)
+
+```

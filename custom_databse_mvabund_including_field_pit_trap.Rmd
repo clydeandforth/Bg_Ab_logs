@@ -1,0 +1,143 @@
+---
+title: "Custom database mvabund including field"
+author: "JAMES D"
+date: "28/08/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(mvabund)
+df1 <- read.csv("ammaglemated_transcriptome_hits_for_R.csv", sep=",", header = T, stringsAsFactors = FALSE) 
+
+df2<-as.matrix(df1)
+rownames(df2) <- df1$Samples
+
+
+df3<-as.data.frame(df2)
+#df4<-within(df3, rm(Taxa, AT2, AT3, AT4, AT5, AT8, ROW1, ROW1_2))
+
+df5<-t(df3)
+#df5<-as.data.frame(t(df4))
+str(df5)
+
+df5$beetle<-c("no-beetle","no-beetle","no-beetle","no-beetle","no-beetle","no-beetle","no-beetle","no-beetle","no-beetle","beelte","beelte","beelte","no-beetle","no-beetle","no-beetle","beelte","beelte","beelte","no-beetle","no-beetle","no-beetle","beelte","beelte","beelte","no-beetle","no-beetle","no-beetle","beelte","beelte","beelte", "beetle")
+df5$lesion_size<-c("none", "none", "none","none", "none", "none", "small", "small", "small", "large", "large", "large", "small", "small", "small", "large", "large", "large", "small", "small", "small", "large", "large", "small", "none", "none", "none","large", "large", "large","large")
+#df5$brenneria_inoculated<-c("no", "no", "no","no", "no", "no", "yes", "yes", "yes", "yes", "yes", "yes","no", "no", "no","no", "no", "no","no", "no", "no","no", "no", "no")
+#df5$brenneria_back_isolated<-c("no", "no", "no","no", "no", "no","no", "no", "no", "no", "yes", "yes","no", "no", "no","no", "no", "no","no", "no", "no", "yes", "yes", "yes")
+#df5$inoculum<-c("water", "water", "water", "wound", "wound", "wound", "Bg", "Bg", "Bg", "Bg", "Bg", "Bg", "Gq", "Gq", "Gq", "Gq", "Gq", "Gq", "Lb", "Lb", "Lb", "Lb", "Lb", "Lb")
+df5$sample<-c("control", "control", "control", "control", "control", "control", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "bacteria", "field_healthy", "field_healthy", "field_healthy", "field", "field", "field", "field")
+df5$high_Bg<-c("no", "no", "no","no", "no", "no","no", "no", "yes","yes", "yes", "yes","no", "no", "no","no", "no", "no","no", "no", "no","yes", "yes", "no", "no", "no", "no","yes","yes", "yes", "yes")  
+#df5$high_T3<-c("no", "no", "no","no", "no", "no","no", "no", "no","no", "no", "no","no", "no", "no","no", "no", "no","no", "no", "no","yes", "yes", "no")  
+df5$rep<-c("A", "A", "A", "B", "B", "B", "C", "C", "C", "D", "D", "D", "E", "E", "E", "F", "F", "F", "G", "G", "G", "H", "H", "H", "I", "I", "I", "J", "J", "J", "J")
+
+df6<-as.data.frame(t(df3))
+
+#write.csv and then in excel highlight all the numbers, and change all the number from "General" to "Number" and then back to general
+#write.csv(df6, "mvabund_object.csv")
+setwd("~/Dropbox/R_work/martin_metatranscripts_express/")
+
+df6<-read.csv("mvabund_object_29062018_numbers.csv", row.names = 1)
+
+```
+
+```{r}
+
+df7<-mvabund(df6)
+
+#meanvar.plot(df7)
+```
+
+```{r}
+# this may be the most informative model as it contains the all the biology except rep
+# however, this model may be overparamertised as it does not have the lowest AIC 
+# also,  high_Bg and high_T3 may be correlated 
+mod3.1 <- manyglm(df7 ~  rep + beetle + sample + high_Bg , family="negative binomial", data = df5)
+plot(mod3.1, which = 2)
+plot(mod3.1)
+
+(mod3.1)$AICsum
+
+
+anova(mod3.1)
+anova.manyglm(mod3.1, resamp = "monte.carlo", test = "score", p.uni = "none")
+drop1(mod3.1, test = "Chisq")
+
+```
+
+
+```{r}
+mod3.2 <- manyglm(df7 ~  rep + sample + high_Bg, family="negative binomial", data = df5)
+plot(mod3.2, which = 2)
+plot(mod3.2)
+
+(mod3.2)$AICsum
+
+
+anova(mod3.2)
+anova.manyglm(mod3.2, resamp = "monte.carlo", test = "score", p.uni = "none")
+drop1(mod3.2, test = "Chisq")
+```
+
+```{r}
+mod3.3 <- manyglm(df7 ~  rep + high_Bg, family="negative binomial", data = df5)
+plot(mod3.3, which = 2)
+plot(mod3.3)
+
+(mod3.3)$AICsum
+
+
+anova(mod3.3)
+anova.manyglm(mod3.3, resamp = "monte.carlo", test = "score", p.uni = "none")
+drop1(mod3.3, test = "Chisq")
+```
+```{r}
+mod3.4 <- manyglm(df7 ~ rep + beetle +  high_Bg, family="negative binomial", data = df5)
+plot(mod3.4, which = 2)
+plot(mod3.4)
+
+(mod3.4)$AICsum
+
+
+anova(mod3.4)
+anova.manyglm(mod3.4, resamp = "monte.carlo", test = "score", p.uni = "none")
+drop1(mod3.4, test = "Chisq")
+```
+
+```{r}
+mod3.5 <- manyglm(df7 ~ rep + beetle +  sample, family="negative binomial", data = df5)
+plot(mod3.5, which = 2)
+plot(mod3.5)
+
+(mod3.5)$AICsum
+
+
+anova(mod3.5)
+anova.manyglm(mod3.5, resamp = "monte.carlo", test = "score", p.uni = "none")
+drop1(mod3.5, test = "Chisq")
+```
+
+```{r}
+mod3.6 <- manyglm(df7 ~ rep + beetle, family="negative binomial", data = df5)
+plot(mod3.6, which = 2)
+plot(mod3.6)
+
+(mod3.6)$AICsum
+
+
+anova(mod3.6)
+anova.manyglm(mod3.6, resamp = "monte.carlo", test = "score", p.uni = "none")
+drop1(mod3.6, test = "Chisq")
+```
+
+```{r}
+(mod3.1)$AICsum
+(mod3.2)$AICsum
+(mod3.3)$AICsum
+(mod3.4)$AICsum
+(mod3.5)$AICsum
+(mod3.6)$AICsum
+```
